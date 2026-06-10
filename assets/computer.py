@@ -48,7 +48,7 @@ class QuantumComputer(Computer):
     # To get probabilities of each state before measurement
     def update_before_measurement(self):
         # qcge runs the circuit on the selected backend (real Qiskit on desktop,
-        # numpy statevector simulator in the browser) and returns the amplitudes.
+        # pure-Python statevector simulator in the browser) and returns the amplitudes.
         statevector = self.circuit_grid.get_statevector()
 
         # Set the opacity of each paddle equal to the probability of measuring that state
