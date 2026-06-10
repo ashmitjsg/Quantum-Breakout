@@ -1,9 +1,20 @@
 """Data-driven level definitions.
 
 Each :class:`Level` pairs a quantum concept with the in-game lesson shown on its
-concept board before play. Levels are pure data, so the teaching content and
-ordering can be changed or extended without touching scene/engine code
-(open/closed: new levels = new data, not new code paths).
+concept board, the gate palette the player may use, and a concrete scoring aim
+(bricks to break vs. balls you may drop). Levels are pure data, so the teaching
+content, difficulty and ordering can be changed or extended without touching
+scene/engine code (open/closed: new levels = new data, not new code paths).
+
+Design rationale - the paddle is a 3-qubit state spread over 8 slots, and a slot is
+caught only if the random measurement lands on the ball's lane:
+  * Deterministic gates (X) let you put 100% of the probability on one slot, so the
+    paddle is fully steerable and the level is reliably winnable.
+  * Superposition (H) spreads probability across slots, so each catch is a gamble -
+    great for *teaching* measurement, but a poor primary objective.
+So the progression front-loads steerability (X first), then introduces probability,
+interference and entanglement, and the per-level `win_score`/`lose_score` are tuned
+so the objective stays achievable with the gates that level allows.
 """
 
 from __future__ import annotations
@@ -14,85 +25,99 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Level:
     number: int
-    title: str          # short concept name, e.g. "Superposition"
-    lines: tuple[str, ...]   # teaching board body, one entry per line
-    goal: str           # one-line objective shown during play
-    gate_hint: str      # which gate(s) this level is about
+    title: str               # short concept name, e.g. "Superposition"
+    lines: tuple[str, ...]    # teaching board body, one entry per line
+    goal: str                 # one-line objective shown during play
+    gate_hint: str            # which gate(s) this level is about
+    win_score: int            # bricks to break to clear the level
+    lose_score: int           # balls you may drop before losing
     allowed_gates: tuple[str, ...] | None = None  # restrict the palette (None = all)
 
 
 LEVELS: tuple[Level, ...] = (
     Level(
         number=1,
-        title="Superposition",
+        title="Qubits & the X gate",
         lines=(
-            "A qubit can be 0 AND 1 at once - a 'superposition'.",
-            "The H (Hadamard) gate puts a qubit into an equal",
-            "superposition, so your paddle exists over several",
-            "positions at the same time.",
+            "Your paddle is a 3-qubit register: 3 wires = 8 possible",
+            "slots (000..111). The X gate is the quantum NOT - it",
+            "flips a wire's 0 to 1, moving the paddle to a definite",
+            "slot. No randomness here: you are in full control.",
             "",
-            "Press H on the top wire and watch the paddles glow",
-            "with their probabilities.",
+            "Place X gates to put the paddle exactly under the ball.",
         ),
-        goal="Use H to spread your paddle across positions.",
-        gate_hint="H",
-        allowed_gates=("H",),
+        goal="Steer with X and break 5 bricks (drop 5 and you lose).",
+        gate_hint="X",
+        win_score=5,
+        lose_score=5,
+        allowed_gates=("X",),
     ),
     Level(
         number=2,
-        title="Measurement & Collapse",
+        title="Superposition (H)",
         lines=(
-            "You never see a superposition directly. Looking at it",
-            "- a 'measurement' - collapses it to ONE outcome,",
-            "at random, weighted by the probabilities.",
+            "The H (Hadamard) gate puts a wire into an equal",
+            "superposition of 0 and 1 - so the paddle exists over",
+            "TWO slots at once, each at 50% (shown as paddle opacity).",
             "",
-            "When the ball comes close, the quantum paddle is",
-            "measured and snaps to a single position.",
+            "One H doubles your coverage but halves each slot's",
+            "chance. Use X to aim the pair near the ball.",
         ),
-        goal="Watch the ball collapse your paddle to one state.",
-        gate_hint="(measurement happens automatically)",
-        allowed_gates=("H", "X"),
+        goal="Cover the ball with one H (50/50). Break 3 bricks; you may drop 8.",
+        gate_hint="H (+ X to aim)",
+        win_score=3,
+        lose_score=8,
+        allowed_gates=("X", "H"),
     ),
     Level(
         number=3,
-        title="Pauli-X (bit flip)",
+        title="Measurement & Collapse",
         lines=(
-            "The X gate is the quantum NOT: it flips |0> to |1>",
-            "and |1> to |0>, moving which basis state you occupy.",
+            "You never see a superposition directly. When the ball",
+            "arrives the paddle is MEASURED and collapses to a single",
+            "slot, at random, weighted by the probabilities you built.",
             "",
-            "Combine X with H to choose WHICH positions your",
-            "superposition covers.",
+            "More H gates = wider spread but lower odds per slot.",
+            "Keep probability concentrated where the ball will be.",
         ),
-        goal="Use X to flip qubits and steer your paddle.",
-        gate_hint="X",
-        allowed_gates=("H", "X"),
+        goal="Balance spread vs. odds. Break 4 bricks; you may drop 7.",
+        gate_hint="H + X (measurement is automatic)",
+        win_score=4,
+        lose_score=7,
+        allowed_gates=("X", "H"),
     ),
     Level(
         number=4,
-        title="Phase: Z, S, T",
+        title="Phase & interference (Z, S, T)",
         lines=(
-            "Beyond 0 and 1, a qubit carries a 'phase'. The Z, S",
-            "and T gates rotate this phase. Phase is invisible to a",
-            "single measurement, but it changes how amplitudes",
-            "interfere when you apply more gates (e.g. H Z H).",
+            "Beyond 0 and 1 a qubit carries a phase. Z, S and T",
+            "rotate it. Phase is invisible to one measurement, but",
+            "it changes how amplitudes interfere under more gates:",
+            "H - Z - H on a wire flips it, steering via interference.",
+            "",
+            "Use phase between H gates to redirect your paddle.",
         ),
-        goal="Add phase gates between H gates and watch interference.",
-        gate_hint="Z / S / T",
+        goal="Steer with interference (try H-Z-H). Break 4 bricks; you may drop 8.",
+        gate_hint="Z / S / T between H gates",
+        win_score=4,
+        lose_score=8,
         allowed_gates=("H", "Z", "S", "T"),
     ),
     Level(
         number=5,
         title="Entanglement (CX)",
         lines=(
-            "The controlled-X (CX) gate links two qubits: the",
-            "target flips only if the control is 1. Applied to a",
-            "superposition it creates ENTANGLEMENT - measuring one",
-            "qubit instantly determines the other.",
+            "Press C on an X gate, then R/F to attach a control on",
+            "another wire: a controlled-X (CX). The target flips only",
+            "when the control is 1. Put H on the control first and",
+            "you get a Bell state - two slots, perfectly correlated.",
             "",
-            "Press C on an X gate, then R/F to attach a control.",
+            "Measuring one wire instantly decides the other.",
         ),
-        goal="Build a CX to entangle your qubits.",
-        gate_hint="CX (C then R/F)",
+        goal="Build H then CX to entangle. Break 4 bricks; you may drop 8.",
+        gate_hint="H, then CX (C then R/F)",
+        win_score=4,
+        lose_score=8,
         allowed_gates=("H", "X", "CTRL"),
     ),
 )

@@ -103,7 +103,7 @@ class GameScene(Scene):
                     globals.player_score += 1
         
         ## WIN CONDITION -> advance to the next level's concept board, or finish
-        if globals.player_score >= globals.WIN_SCORE:
+        if globals.player_score >= self.level.win_score:
             next_number = self.level.number + 1
             if next_number <= len(levels.LEVELS):
                 sm.push(ConceptBoardScene(levels.LEVELS[next_number - 1]))
@@ -111,7 +111,7 @@ class GameScene(Scene):
                 sm.push(WinScene())
 
         ## LOSE CONDITION
-        if globals.ball_dropped >= globals.LOSE_SCORE:
+        if globals.ball_dropped >= self.level.lose_score:
             sm.push(LoseScene(self.level))
 
 
@@ -119,7 +119,7 @@ class GameScene(Scene):
         self.circuit_grid.update()      # refresh gate sprites + positions each frame
         self.circuit_grid.draw(screen)
         ui.draw_statevector_grid(screen)
-        ui.draw_score(screen, globals.player_score)
+        ui.draw_score(screen, globals.player_score, self.level.win_score)
 
         # level banner + objective, centered just above the circuit grid (clear of
         # the bricks at the top of the screen)
@@ -131,6 +131,12 @@ class GameScene(Scene):
         screen.blit(banner, banner.get_rect(center=(globals.WINDOW_WIDTH / 2, paddle_top - 52)))
         goal = font.vector_font.render(self.level.goal, 1, globals.GRAY)
         screen.blit(goal, goal.get_rect(center=(globals.WINDOW_WIDTH / 2, paddle_top - 24)))
+
+        # live "drops left" counter under the bricks counter, so the lose limit is visible
+        drops_left = max(0, self.level.lose_score - globals.ball_dropped)
+        drops = font.vector_font.render(f"Drops left: {drops_left}", 1, globals.WHITE)
+        screen.blit(drops, drops.get_rect(center=(globals.WINDOW_WIDTH / 2, globals.WINDOW_HEIGHT * 0.47)))
+
         self.moving_sprites.draw(screen)
 
         for brick in self.brick_layers.bricks:
@@ -208,17 +214,17 @@ class HowToPlayScene(Scene):
     CONTROLS = (
         "QUANTUM BREAKOUT",
         "",
-        "Your paddle is a quantum state. Build a circuit to control",
-        "where it can be, then break the bricks.",
+        "Your paddle is a quantum state - build a",
+        "circuit to aim it, then break the bricks.",
         "",
-        "Arrow keys - move the circuit cursor",
-        "X Y Z H    - place an X / Y / Z / Hadamard gate",
-        "S T        - place S / T phase gates",
-        "C          - make a gate controlled, then R / F to set control",
-        "Q E        - rotate (RX/RY/RZ) by -/+ pi/8",
-        "Backspace  - remove gate     Delete - clear circuit",
+        "Arrow keys  -  move the cursor",
+        "X  Y  Z  H  -  place that gate",
+        "S  T  -  phase gates",
+        "C  then  R / F  -  add a control (CX)",
+        "Q  E  -  rotate by  -/+ pi/8",
+        "Backspace  -  remove     Delete  -  clear",
         "",
-        "Each level teaches one quantum idea. Press SPACE to begin.",
+        "Press SPACE to begin.",
     )
 
     def update(self, sm):

@@ -9,7 +9,7 @@ simulator (`backend="python"`), since Qiskit cannot run under Pyodide.
 
 Importing **numpy** inside pygbag breaks the SDL display: `pygame.display.set_mode()`
 hangs / raises *"The video driver did not add any displays"*, and you get a grey
-screen that never starts. This is independent of import order — pygbag preloads the
+screen that never starts. This is independent of import order - pygbag preloads the
 numpy wheel at boot from a scan of `main.py`, and merely loading it poisons the
 canvas/display init. (Diagnosed by A/B: a minimal pygame app renders; the same app
 `+ import numpy` hangs at `set_mode`.)
@@ -19,7 +19,7 @@ Therefore:
   either. qcge is structured so `import qcge` is numpy-free (the numpy/qiskit backends
   are lazy; the core, IR, result and registry use only the standard library).
 - The browser path uses qcge's **pure-Python** backend (identical results to numpy and
-  qiskit — verified to 0.0 amplitude difference).
+  qiskit - verified to 0.0 amplitude difference).
 - Desktop is unaffected: there `backend="auto"` picks real Qiskit.
 
 ## Why a clean staging directory
@@ -44,7 +44,7 @@ bash patch_index.sh                      # re-apply the black/magenta theme (see
 python -m pygbag main.py                 # serves at http://localhost:8000
 ```
 
-Result: `qbreakout-web/build/web/` — `index.html` + `*.apk` (~5 MB). No `numpy-*.whl`
+Result: `qbreakout-web/build/web/` - `index.html` + `*.apk` (~5 MB). No `numpy-*.whl`
 is fetched at runtime (check the Network tab; only `pygame_ce-*.whl` should load).
 
 ## Theme patch (`patch_index.sh`)
