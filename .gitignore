@@ -7,3 +7,4 @@ qcge/
 build/
 web-cache/
 web-build/
+*.zip

@@ -1,6 +1,9 @@
 # Quantum Breakout
 
-**▶ Play in your browser:** [ashmitjsg.itch.io/quantum-breakout](https://ashmitjsg.itch.io/quantum-breakout)
+![Quantum Breakout](assets/images/quantum-breakout.png)
+
+[![Play on itch.io](https://img.shields.io/badge/▶_Play_in_browser-itch.io-fa5c5c?style=for-the-badge)](https://ashmitjsg.itch.io/quantum-breakout)
+&nbsp;[![qcge on PyPI](https://img.shields.io/pypi/v/qcge?label=qcge&style=for-the-badge)](https://pypi.org/project/qcge/)
 
 A quantum version of the classic Breakout game. Your paddle is a **quantum state**:
 you build a small quantum circuit to control *where the paddle can be*, then break the
