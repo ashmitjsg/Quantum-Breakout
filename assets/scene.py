@@ -1,6 +1,6 @@
 import pygame
 
-from assets.circuit_grid import CircuitGrid
+from qcge import QuantumCircuitGrid
 from assets import globals, ui, paddle, ball, computer, resources, bricks
 
 class Scene:
@@ -30,7 +30,15 @@ class SceneManager:
 class GameScene(Scene):
     def __init__(self) -> None:
         super().__init__()
-        self.circuit_grid = CircuitGrid(5, globals.FIELD_HEIGHT)
+        # The circuit UI + simulation are now provided by the reusable qcge engine
+        # (pip install qcge). backend="auto" -> real Qiskit on desktop, numpy
+        # statevector simulator in the browser build.
+        self.circuit_grid = QuantumCircuitGrid(
+            position=(5, globals.FIELD_HEIGHT),
+            num_qubits=globals.NUM_QUBITS,
+            num_columns=16,
+            assets_path="assets/images/gates",
+        )
         self.quantum_paddles = paddle.QuantumPaddles(globals.STATEVECTOR_WIDTH)
         self.quantum_computer = computer.QuantumComputer(self.quantum_paddles, self.circuit_grid)
         self.game_ball = ball.Ball()
@@ -81,6 +89,7 @@ class GameScene(Scene):
 
 
     def draw(self, sm, screen):
+        self.circuit_grid.update()      # refresh gate sprites + positions each frame
         self.circuit_grid.draw(screen)
         ui.draw_statevector_grid(screen)
         ui.draw_score(screen, globals.player_score)
