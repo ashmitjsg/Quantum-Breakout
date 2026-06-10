@@ -1,5 +1,4 @@
 import pygame
-import qiskit
 
 from . import globals
 
@@ -48,10 +47,9 @@ class QuantumComputer(Computer):
 
     # To get probabilities of each state before measurement
     def update_before_measurement(self):
-        simulator = qiskit.BasicAer.get_backend("statevector_simulator")
-        circuit = self.circuit_grid.model.compute_circuit()
-        transpiled_circuit = qiskit.transpile(circuit, simulator)
-        statevector = simulator.run(transpiled_circuit, shots=100).result().get_statevector()
+        # qcge runs the circuit on the selected backend (real Qiskit on desktop,
+        # pure-Python statevector simulator in the browser) and returns the amplitudes.
+        statevector = self.circuit_grid.get_statevector()
 
         # Set the opacity of each paddle equal to the probability of measuring that state
         for basis_state, amplitude in enumerate(statevector):
@@ -59,13 +57,10 @@ class QuantumComputer(Computer):
 
     # To measure the state
     def update_after_measurement(self):
-        simulator = qiskit.BasicAer.get_backend("qasm_simulator")
-        circuit = self.circuit_grid.model.compute_circuit()
-        circuit.measure_all()
-        transpiled_circuit = qiskit.transpile(circuit, simulator)
-        counts = simulator.run(transpiled_circuit, shots=1).result().get_counts()
+        # One measurement shot collapses the superposition to a single basis state.
+        counts = self.circuit_grid.get_counts(shots=1)
         self.measured_state = int(list(counts.keys())[0], 2)
-        
+
         # Set all the paddles to transparant
         for paddle in self.paddles:
             paddle.image.set_alpha(0)

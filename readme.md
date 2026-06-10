@@ -1,31 +1,62 @@
 # Quantum Breakout
 
-[Download from Itch.io](https://jaisarita.itch.io/quantum-breakout)
+**▶ Play in your browser:** [ashmitjsg.itch.io/quantum-breakout](https://ashmitjsg.itch.io/quantum-breakout)
 
-Quantum Version of Classic Breakout Game
+A quantum version of the classic Breakout game. Your paddle is a **quantum state**:
+you build a small quantum circuit to control *where the paddle can be*, then break the
+bricks. The paddle's opacity over each position is the probability of measuring that
+state; as the ball approaches, the state is **measured** and the paddle collapses to a
+single position.
 
-Inspired by QPong
+Built with **Pygame** on top of the reusable [**qcge**](https://pypi.org/project/qcge/)
+(Quantum Circuit Game Engine). The circuit runs on real **Qiskit** on the desktop and on
+a dependency-free **pure-Python statevector simulator** in the browser (pygbag/WebAssembly),
+where Qiskit cannot run - so the exact same game plays both places.
 
-I am happy to announce The Quantum Breakout Game which I built as a part of Team Abraxas for showcasing at Fest Nimbus, the annual technical fest of the National Institute of Technology Hamirpur. This is a quantum version of the Classic Breakout Game by Atari, Inc. built using Pygame and Qiskit. In the Classic Breakout Game, the player has to knock down as many bricks as possible by using a single ball and the paddle below to hit the ball against the bricks and eliminate them. In this quantum version of the game, players have to control the paddle by constructing a three-qubits circuit such that the probability of the paddle being above the state vector where the ball is about to come is maximum. The probability of the paddle being above a certain state is indicated by the opacity of the paddle, 100% opacity (pure white) indicates the 100% probability and 0% opacity (transparent) indicates the 0% probability of the state. As the ball comes near the paddle the measurement is done and the position of the paddle collapses to a being above a certain state which was in superposition before the measurement.
+## Learn by playing - in-game levels
 
-I have built this game to help school students and college freshmen understand the basic concept of quantum computing: Qubit manipulation by Quantum Gates.
+There is no separate tutorial to read: the game teaches itself. Each level opens with a
+short concept board, then restricts the gate palette so you practise that one idea:
 
-This game is highly inspired by the QPong game developed by Junye Huang. I am thankful to him and Qiskit for releasing a basic tutorial for building QPong in a YouTube series: 12 Days of Qiskit (https://youtube.com/playlist?list=PLOFEBzvs-VvodTkP_rfrs3RWdeWE9aNRD) without which it would have been hard for me to develop this game.
+1. **Superposition** - the H (Hadamard) gate spreads the paddle across positions.
+2. **Measurement & Collapse** - the approaching ball measures the paddle to one position.
+3. **Pauli-X (bit flip)** - X moves which basis state you occupy; combine with H.
+4. **Phase: Z, S, T** - phase is invisible to a single measurement but changes interference.
+5. **Entanglement (CX)** - a controlled-X links two qubits.
 
-# Game Demo
-https://user-images.githubusercontent.com/43639341/232225302-bed08bac-010c-4569-94d2-819d7329568d.mp4
+## Play instructions
 
-# Download & Install Instruction
-1) Unzip the Downloaded Zip File
-2) Open the Game Folder
-3) Create a virtual enviornment using the command: `python -m venv qenv` on your terminal.
-4) Activate the virtual enviorment: 
-   - For windows: `.\qenv\Scripts\Activate.ps1`
-   - For linux: `source qenv/bin/activate`
-5) Install the requirements using the command: `pip install -r requirements-dev.txt​` on your terminal.
-6) Run the `main.py` file using the command: `python main.py`
+- **Arrow keys** - move the circuit cursor.
+- **X / Y / Z / H** - place an X / Y / Z / Hadamard gate.
+- **S / T** - place S / T phase gates. *(This is why the cursor uses the arrow keys, not WASD - the S key is needed for the S gate.)*
+- **C** - make a gate controlled, then **R / F** to attach the control above/below.
+- **Q / E** - turn X/Y/Z into a rotation (RX/RY/RZ), decreasing/increasing the angle by π/8.
+- **Backspace** - remove the gate under the cursor. **Delete** - clear the circuit.
+- **Space** - advance the concept boards / start a level.
 
-# Play Instruction
-- Use the W, A, S, and D keys to move the marker on the circuit for adding gates at appropriate places.
-- Use the X key to apply the X-Gate, the Y key to apply the Y-Gate, the Z key to apply the Z-Gate, and the H Key to apply the H-Gate.
-- Use the C key to activate the control qubit, use the UP, DOWN, RIGHT, and LEFT keys to reach the target qubit, and then click the key representation (X, Y, Z, and H Keys) for the gate which you want to be controlled.
+## Run on the desktop
+
+```bash
+python -m venv qenv
+# Windows:  .\qenv\Scripts\Activate.ps1     Linux/macOS: source qenv/bin/activate
+pip install -r requirements-dev.txt
+python main.py
+```
+
+On the desktop `qcge` selects the real Qiskit backend automatically.
+
+## Build for the browser (itch.io)
+
+The browser build is produced with [pygbag](https://github.com/pygame-web/pygbag) and
+must stay **numpy-free** (importing numpy inside pygbag breaks the SDL display); qcge's
+`backend="auto"` handles this by using its pure-Python simulator in the browser. Full,
+reproducible steps - including the post-build theming - are in
+[**WEB_BUILD.md**](WEB_BUILD.md).
+
+## Credits
+
+A quantum re-imagining of the Atari *Breakout*, inspired by and indebted to **QPong** by
+Junye Huang and the Qiskit *12 Days of Qiskit* series
+([playlist](https://youtube.com/playlist?list=PLOFEBzvs-VvodTkP_rfrs3RWdeWE9aNRD)).
+Originally built for Team Abraxas at Fest Nimbus (NIT Hamirpur), and rebuilt for v2 on the
+standalone qcge engine with in-game teaching levels and a browser build.

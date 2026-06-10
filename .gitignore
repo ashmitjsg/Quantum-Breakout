@@ -2,3 +2,8 @@
 __pycache__
 .DS_Store
 qenv
+.venv/
+qcge/
+build/
+web-cache/
+web-build/

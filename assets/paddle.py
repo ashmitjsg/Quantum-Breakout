@@ -8,6 +8,9 @@ class Paddle(pygame.sprite.Sprite):
 
         self.image = pygame.Surface([globals.PADDLE_WIDTH, globals.PADDLE_HEIGHT])
         self.image.fill(globals.WHITE)
+        # start hidden; the quantum computer reveals each paddle in proportion to
+        # its state probability, so the empty circuit doesn't flash a full-width bar
+        self.image.set_alpha(0)
         self.rect = self.image.get_rect()
         self.rect.x = x_pos
         self.rect.y = y_pos
