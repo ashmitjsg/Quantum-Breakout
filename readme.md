@@ -3,6 +3,7 @@
 ![Quantum Breakout](assets/images/quantum-breakout.png)
 
 [![Play on itch.io](https://img.shields.io/badge/▶_Play_in_browser-itch.io-fa5c5c?style=for-the-badge)](https://ashmitjsg.itch.io/quantum-breakout)
+&nbsp;[![Watch the demo](https://img.shields.io/badge/▶_Watch_demo-YouTube-ff0000?style=for-the-badge)](https://youtu.be/jnlsQTBWw98)
 &nbsp;[![qcge on PyPI](https://img.shields.io/pypi/v/qcge?label=qcge&style=for-the-badge)](https://pypi.org/project/qcge/)
 
 A quantum version of the classic Breakout game. Your paddle is a **quantum state**:
