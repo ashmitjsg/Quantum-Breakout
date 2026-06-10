@@ -1,3 +1,2 @@
+qcge[qiskit]>=2.0
 pygame==2.6.1
-qiskit-terra==0.46.3
-numpy==2.1.2

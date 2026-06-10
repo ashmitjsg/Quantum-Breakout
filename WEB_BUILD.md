@@ -22,49 +22,45 @@ Therefore:
   qiskit - verified to 0.0 amplitude difference).
 - Desktop is unaffected: there `backend="auto"` picks real Qiskit.
 
-## Why a clean staging directory
+## Build steps - one command
 
-pygbag bundles the *entire* working directory. If you build from the repo root it
-will try to package `.venv/` (hundreds of MB, including Qiskit/SciPy) and fail on
-stray asset formats. Build from a clean staging dir (`qbreakout-web/`) that contains
-only what the browser needs: `main.py`, the vendored `qcge/`, and `assets/`.
-
-## Build steps
+The browser bundle is a **generated artifact**, not source. `build_web.sh` produces
+it reproducibly: it makes an ephemeral, gitignored staging dir (`web-build/`), copies
+`main.py` + `assets/`, **vendors qcge from the installed package** (so the browser
+runs the *exact same* qcge version as the desktop), runs pygbag, and applies the
+theme. No hand-copying, so the vendored copy can't drift from source.
 
 ```bash
-# from quantum-games/, into the existing clean staging dir qbreakout-web/
-cp Quantum-Breakout/main.py qbreakout-web/main.py
-# re-vendor qcge (until qcge 2.x is on PyPI)
-cp -r Quantum-Circuit-Game-Engine/qcge/* qbreakout-web/qcge/
-
-cd qbreakout-web
-python -m pygbag --build main.py        # produces build/web/{index.html, *.apk, favicon.png}
-bash patch_index.sh                      # re-apply the black/magenta theme (see below)
-# or, to playtest locally:
-python -m pygbag main.py                 # serves at http://localhost:8000
+# from Quantum-Breakout/  (qcge must be installed in .venv: pip install -r requirements-dev.txt)
+bash build_web.sh
 ```
 
-Result: `qbreakout-web/build/web/` - `index.html` + `*.apk` (~5 MB). No `numpy-*.whl`
-is fetched at runtime (check the Network tab; only `pygame_ce-*.whl` should load).
+Result: `web-build/build/web/` - `index.html` + `*.apk` (~5 MB). No `numpy-*.whl` is
+fetched at runtime (check the Network tab; only `pygame_ce-*.whl` should load).
+
+> Why vendor at all: pygbag bundles local files into the page; it does **not**
+> pip-install at runtime. qcge is pure-Python, so the bundled copy runs in the
+> browser. `web-build/` is throwaway (gitignored) - never edit it by hand; change the
+> source (`main.py`, `assets/`, or qcge) and rebuild.
+
+To playtest locally, serve the built folder statically (the bundle uses an absolute
+CDN, so no proxy is needed):
+
+```bash
+python -m http.server 8000 -d web-build/build/web    # then open http://localhost:8000
+```
 
 ## Theme patch (`patch_index.sh`)
 
 `pygbag --build` regenerates `index.html` with a grey page background, a
 green/powderblue loader splash, and a focus outline on the canvas (thin white
-border). Re-apply the Quantum-Breakout theme after every build:
+border). `build_web.sh` calls `patch_index.sh` to re-apply the Quantum-Breakout
+theme (black background, white centred 8-bit loader text, no canvas outline, clean
+tab-close). To re-theme an existing build by hand:
 
 ```bash
-# from qbreakout-web/, against build/web/index.html
-f=build/web/index.html
-sed -i 's/style.background = "#7f7f7f"/style.background = "#000000"/' "$f"   # page bg -> black
-sed -i 's/background-color:powderblue;/background-color:#000000;/'    "$f"   # body bg -> black
-sed -i 's/background: green;/background: #000000;/'                   "$f"   # loader box -> black
-sed -i 's/color: blue;/color: #ff00ff;/'                             "$f"   # loader text -> magenta
-# kill the canvas focus outline (thin white border, top/bottom)
-sed -i 's#</style>#        canvas, #canvas, .emscripten { outline: none !important; border: none !important; }\n    </style>#' "$f"
+bash patch_index.sh web-build/build/web/index.html
 ```
-
-(The repo keeps these as `qbreakout-web/patch_index.sh` so it is one command.)
 
 ## Audio
 
@@ -75,7 +71,7 @@ gesture, so background music starts after the first interaction. The track
 
 ## Upload to itch.io
 
-1. Zip the **contents** of `build/web/` (so `index.html` is at the zip root).
+1. Zip the **contents** of `web-build/build/web/` (so `index.html` is at the zip root).
 2. itch.io → your project (https://ashmitjsg.itch.io/quantum-breakout) → Edit →
    Kind of project: **HTML**, upload the zip, tick **"This file will be played in
    the browser"**.
